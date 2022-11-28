@@ -1,0 +1,42 @@
+//SPDX-License-Identifier: MIT
+pragma solidity ^0.8.13;
+
+contract BankContract{
+
+    address public owner;
+
+    constructor(){
+        owner = msg.sender;
+    }
+
+    struct AccountDetails{
+        uint256 accountNumber;
+        string accountHolderName;
+        uint256 Balance;
+    }
+
+    //modifiers
+    modifier checkSender(){
+        require( owner == msg.sender, "You r nt the oner " );     
+        _;
+    }
+
+    // modifier checkAccNumAvailability( uint256 accNum ){
+    //     require( accNumToBank[accNum] , "Already Account Exists" );
+    //     _;
+    // }
+
+
+    mapping( uint256 => AccountDetails ) public accNumToBank;
+
+    function addBankAccount( uint256 _accountNumber, string memory _accountHolderName,uint256 _Balance ) public checkSender{
+        AccountDetails memory accountDetails = AccountDetails(_accountNumber, _accountHolderName, _Balance);
+        accNumToBank[_accountNumber] = accountDetails;
+    }
+
+    function getBalance( uint256 _accountNumber) public view returns(uint256){
+        return accNumToBank[_accountNumber].Balance;
+    }
+
+    
+}
