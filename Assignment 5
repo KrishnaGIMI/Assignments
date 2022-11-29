@@ -1,0 +1,213 @@
+//Contract ABI file
+[
+	{
+		"inputs": [],
+		"name": "add",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "div",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "mul",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "num1",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "num2",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_num1",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_num2",
+				"type": "uint256"
+			}
+		],
+		"name": "setNum",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "sub",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+
+
+
+
+
+
+
+
+
+//INTERACT.js file
+
+// //SPDX-License-Identifier: MIT
+// pragma solidity ^0.4.17;
+
+const Web3 = require('web3');
+
+//Load config.json
+const CONFIG = require('./config.json')
+const contract_ABI = require("./contractABI")
+
+//Connect to a Node
+const web3Node = new Web3(CONFIG["nodeURL"])
+
+// console.log(Web3);
+
+
+
+async function transaction(_number1, _number2){
+    //check if node is connected
+    var isConnected = await web3Node.eth.net.isListening();
+    if( !isConnected ){
+        console.log("Cannot connect to node");
+    }
+    console.log("Successfully connected to node");
+
+    //connect to contract
+    const storageContract = new web3Node.eth.Contract(contract_ABI, CONFIG["contractAddress"])
+    console.log("Initialized Contract");
+
+    //get the gas price
+    var gasPrice = await web3Node.eth.getGasPrice();
+    console.log("Current Gas Price", gasPrice);
+
+    //create transaction
+    var txn = await storageContract.methods.setNumber(_number1, _number2);
+    console.log("Transaction: ", txn);
+
+    // Reading  txn
+    var ADDtxn = await storageContract.methods.add().call()
+    var SUBtxn = await storageContract.methods.sub().call()
+    var MULtxn = await storageContract.methods.mul().call()
+    var DIVtxn = await storageContract.methods.div().call()
+
+
+
+    var add_trans_options = {
+        to: CONFIG["contractAddress"],
+        data: ADDtxn.encodeABI(),
+        gas: await ADDtxn.estimateGas({ from : CONFIG["accountAddress"] }),
+        gasPrice: gasPrice
+    }
+
+    var sub_trans_options = {
+        to: CONFIG["contractAddress"],
+        data: SUBtxn.encodeABI(),
+        gas: await SUBtxn.estimateGas({ from : CONFIG["accountAddress"] }),
+        gasPrice: gasPrice
+    }
+
+    var mul_trans_options = {
+        to: CONFIG["contractAddress"],
+        data: MULtxn.encodeABI(),
+        gas: await MULtxn.estimateGas({ from : CONFIG["accountAddress"] }),
+        gasPrice: gasPrice
+    }
+
+    var div_trans_options = {
+        to: CONFIG["contractAddress"],
+        data: DIVtxn.encodeABI(),
+        gas: await DIVtxn.estimateGas({ from : CONFIG["accountAddress"] }),
+        gasPrice: gasPrice
+    }
+
+    //ADDITION
+    //sign it
+    var add_signedTransaction = await web3Node.eth.accounts.signTransaction( add_trans_options, CONFIG["privateKey"]);
+
+    //send it
+    var add_receipt = await web3Node.eth.sendSignedTransaction( add_signedTransaction.rawTransaction);
+
+    //SUBSTRACTION
+     //sign it
+     var sub_signedTransaction = await web3Node.eth.accounts.signTransaction( sub_trans_options, CONFIG["privateKey"]);
+
+     //send it
+     var sub_receipt = await web3Node.eth.sendSignedTransaction( sub_signedTransaction.rawTransaction);
+
+    //MULTIPLICATION
+    //sign it
+    var mul_signedTransaction = await web3Node.eth.accounts.signTransaction( mul_trans_options, CONFIG["privateKey"]);
+
+    //send it
+    var mul_receipt = await web3Node.eth.sendSignedTransaction( mul_signedTransaction.rawTransaction);
+
+    //DIVISION
+     //sign it
+     var div_signedTransaction = await web3Node.eth.accounts.signTransaction( div_trans_options, CONFIG["privateKey"]);
+
+     //send it
+     var div_receipt = await web3Node.eth.sendSignedTransaction( div_signedTransaction.rawTransaction);
+
+}
+
+transaction(15, 10);
